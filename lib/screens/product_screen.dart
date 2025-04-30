@@ -1,116 +1,152 @@
 import 'package:flutter/material.dart';
-import 'package:productes_app/widgets/widgets.dart';
+import '../models/product.dart';
+import '../providers/product_provider.dart';
+import '../screens/edit_product.dart';
 
-import '../ui/input_decorations.dart';
+class ProductScreen extends StatefulWidget {
+  final Product product;
 
-class ProductScreen extends StatelessWidget {
-  const ProductScreen({Key? key}) : super(key: key);
+  const ProductScreen({Key? key, required this.product}) : super(key: key);
+
+  @override
+  State<ProductScreen> createState() => _ProductScreenState();
+}
+
+class _ProductScreenState extends State<ProductScreen> {
+  late Product _product;
+  final ProductService _productService = ProductService();
+
+  @override
+  void initState() {
+    super.initState();
+    _product = widget.product;
+  }
+
+  // Función para reservar producto
+  Future<void> _reservarProducto() async {
+    setState(() {
+      _product.available = false;
+    });
+
+    await _productService.saveProduct(_product);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Producto reservado con éxito')),
+    );
+
+    Navigator.pop(context, true);
+  }
+
+  // Función para eliminar producto
+  Future<void> _deleteProduct() async {
+    try {
+      await _productService.deleteProduct(_product.id!);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Producto eliminado con éxito')),
+      );
+
+      Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al eliminar el producto')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(title: Text(_product.name)),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Stack(
-              children: [
-                ProductImage(),
-                Positioned(
-                  top: 60,
-                  left: 20,
-                  child: IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(
-                      Icons.arrow_back_ios_new,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 60,
-                  right: 20,
-                  child: IconButton(
-                    onPressed: () {
-                      //TODO: Implementar funcionalitat de cercar imatge de la galeria
-                    },
-                    icon: Icon(
-                      Icons.camera_alt_outlined,
-                      size: 30,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            _ProductForm(),
-            SizedBox(
-              height: 100,
-            )
-          ],
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      floatingActionButton: FloatingActionButton(
-          child: Icon(Icons.save_outlined),
-          onPressed: (() {
-            //TODO: Emmagatzemar producte
-          })),
-    );
-  }
-}
-
-class _ProductForm extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20),
-        width: double.infinity,
-        decoration: _buildBoxDecoration(),
-        child: Form(
+        child: Padding(
+          padding: EdgeInsets.all(16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              _product.imageUrl != null
+                  ? Image.network(_product.imageUrl!)
+                  : Icon(Icons.image, size: 100),
+              SizedBox(height: 20),
+              Text(
+                _product.name,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
               SizedBox(height: 10),
-              TextFormField(
-                decoration: InputDecorations.authInputDecoration(
-                    hintText: 'Nom del producte', labelText: 'Nom:'),
+              Text(
+                'Precio: €${_product.price.toStringAsFixed(2)}',
+                style: TextStyle(fontSize: 18),
               ),
-              SizedBox(height: 30),
-              TextFormField(
-                keyboardType: TextInputType.number,
-                decoration: InputDecorations.authInputDecoration(
-                    hintText: '99€', labelText: 'Preu:'),
+              SizedBox(height: 10),
+              Text(
+                _product.description ?? 'No disponible',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
-              SizedBox(height: 30),
-              SwitchListTile.adaptive(
-                value: true,
-                title: Text('Disponible'),
-                activeColor: Colors.indigo,
-                onChanged: (value) {
-                  //TODO: Implementar
-                },
+              SizedBox(height: 20),
+              Text(
+                _product.available ? 'Disponible' : 'Reservado',
+                style: TextStyle(
+                  fontSize: 18,
+                  color: _product.available ? Colors.green : Colors.red,
+                ),
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 20),
+              if (_product.available)
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _reservarProducto,
+                    style: ElevatedButton.styleFrom(
+                      textStyle: TextStyle(fontSize: 18),
+                    ),
+                    child: Text('Reservar'),
+                  ),
+                )
+              else
+                Text('Este producto ya está reservado'),
+
+              // Botón para editar el producto
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Ir a la pantalla de edición
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => EditProductScreen(product: _product),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    textStyle: TextStyle(fontSize: 18),
+                  ),
+                  child: Text('Editar Producto'),
+                ),
+              ),
+
+              // Botón para eliminar el producto
+              SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: _deleteProduct,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    textStyle: TextStyle(fontSize: 18),
+                  ),
+                  child: Text('Eliminar Producto'),
+                ),
+              ),
             ],
           ),
         ),
       ),
     );
   }
-
-  BoxDecoration _buildBoxDecoration() => BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomRight: Radius.circular(25),
-          bottomLeft: Radius.circular(25),
-        ),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              offset: Offset(0, 5),
-              blurRadius: 5),
-        ],
-      );
 }

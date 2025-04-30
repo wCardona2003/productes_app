@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "923615061036",
+    "project_id": "pf5-autenticador",
+    "storage_bucket": "pf5-autenticador.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:923615061036:android:9d358b72faa730c27b9d89",
+        "android_client_info": {
+          "package_name": "com.example.productes_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvk_6juj9sX0YVxnbD3G1X36p9-ORKVoM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
