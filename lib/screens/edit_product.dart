@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../models/product.dart';
 import '../providers/product_provider.dart';
 
-// Pantalla de edición del producto
 class EditProductScreen extends StatefulWidget {
   final Product product;
 
@@ -21,6 +20,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
   final ProductService _productService = ProductService();
 
   late Product _product;
+  late bool _available;
 
   @override
   void initState() {
@@ -30,6 +30,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
     _priceController.text = _product.price.toString();
     _descriptionController.text = _product.description ?? '';
     _imageUrlController.text = _product.imageUrl ?? '';
+    _available = _product.available;
   }
 
   Future<void> _saveProduct() async {
@@ -41,7 +42,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       price: double.parse(_priceController.text),
       description: _descriptionController.text,
       imageUrl: _imageUrlController.text,
-      available: _product.available,  // Mantenemos la disponibilidad actual
+      available: _available, // Ahora sí editable
     );
 
     await _productService.saveProduct(updatedProduct);
@@ -50,7 +51,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       SnackBar(content: Text('Producto actualizado con éxito')),
     );
 
-    Navigator.pop(context, true); // Regresar a la pantalla anterior y pasar el valor 'true'
+    Navigator.pop(context, updatedProduct); // Regresamos el producto actualizado
   }
 
   @override
@@ -61,8 +62,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
         padding: EdgeInsets.all(16),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: [
               TextFormField(
                 controller: _nameController,
@@ -89,6 +89,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
                 controller: _imageUrlController,
                 decoration: InputDecoration(labelText: 'URL de la imagen'),
               ),
+              SizedBox(height: 20),
+
+              // Switch para disponibilidad
+              SwitchListTile(
+                title: Text('Disponible'),
+                value: _available,
+                onChanged: (value) {
+                  setState(() {
+                    _available = value;
+                  });
+                },
+              ),
+
               SizedBox(height: 40),
               ElevatedButton(
                 onPressed: _saveProduct,

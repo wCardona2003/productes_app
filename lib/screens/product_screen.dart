@@ -112,14 +112,19 @@ class _ProductScreenState extends State<ProductScreen> {
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
-                    // Ir a la pantalla de edición
-                    Navigator.push(
+                  onPressed: () async {
+                    final updatedProduct = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) => EditProductScreen(product: _product),
                       ),
                     );
+
+                    if (updatedProduct != null && updatedProduct is Product) {
+                      setState(() {
+                        _product = updatedProduct; // Reflejar cambios
+                      });
+                    }
                   },
                   style: ElevatedButton.styleFrom(
                     textStyle: TextStyle(fontSize: 18),
